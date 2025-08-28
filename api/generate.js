@@ -9,13 +9,14 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const prompt = "今すぐ使える、複数人の会話で盛り上がるための面白いお題を一つだけ提案してください。回答は、お題そのものだけで、余計な説明や前書き、後書き、記号などは一切不要です。";
+    const prompt = "今すぐ使える、複数人の会話で盛り上がるためのお題を一つだけ生成してください。回答は、お題そのものだけで、余計な説明や前書き、後書き、記号などは一切不要です。";
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
         const result = await model.generateContent(prompt);
-        const text = result.response.text;
-        
+        const text = result.response.text()
+
+        console.log('Geminiからのレスポンスのテキスト:', text);
         response.status(200).json({ idea: text });
     } catch (error) {
         console.error(error);

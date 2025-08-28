@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Yusei Magic', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -23,18 +23,19 @@ h1 {
 }
 
 #generateButton {
+    font-family: "Yusei Magic", sans-serif;
     padding: 15px 30px;
     font-size: 1.5em;
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #007bff;
+    background-color: #28a745;
     color: white;
     transition: background-color 0.3s;
 }
 
 #generateButton:hover {
-    background-color: #0056b3;
+    background-color: #218838;
 }
 
 #ideaDisplay {

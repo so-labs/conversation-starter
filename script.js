@@ -6,7 +6,6 @@ generateButton.addEventListener('click', async () => {
     generateButton.disabled = true;
 
     try {
-        // Vercelのサーバーレス関数を呼び出す
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: {
@@ -14,15 +13,19 @@ generateButton.addEventListener('click', async () => {
             },
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        
+
         if (data.idea) {
             ideaDisplay.textContent = data.idea;
         } else {
             ideaDisplay.textContent = '生成に失敗しました。';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('クライアントサイドでのエラー:', error);
         ideaDisplay.textContent = '通信エラーが発生しました。';
     } finally {
         generateButton.disabled = false;
