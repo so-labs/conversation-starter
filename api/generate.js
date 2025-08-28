@@ -12,7 +12,7 @@ export default async function handler(request, response) {
     const prompt = "今すぐ使える、複数人の会話で盛り上がるための面白いお題を一つだけ提案してください。回答は、お題そのものだけで、余計な説明や前書き、後書き、記号などは一切不要です。";
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         const text = result.response.text;
         
