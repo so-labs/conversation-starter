@@ -1,5 +1,9 @@
 # Dependencies
-/node_modules
+node_modules/
+package-lock.json
 
 # Vercel artifacts
 .vercel
+
+# Markdownエクスポートファイル
+export_*.md
