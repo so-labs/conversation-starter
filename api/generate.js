@@ -37,7 +37,7 @@ export default async function handler(request, response) {
     const basePrompts = promptsData.map(item => item.prompt);
     
     const shuffledQuestions = shuffleArray([...questionsData]);
-    const limitedQuestions = shuffledQuestions.slice(0, 5);
+    const limitedQuestions = shuffledQuestions.slice(0, 8); // 例を8個渡す
 
     const jsonPrompts = limitedQuestions.map(item => {
         if (item.choices) {
@@ -65,7 +65,7 @@ export default async function handler(request, response) {
     - ${limitedQuestions.map(q => q.question).join('\n- ')}
 
     回答は、お題を自然な日本語の疑問文（？で終わる）にした文章一つだけで、それ以外の説明文や装飾は一切不要です。
-    ただし、「もし超能力が」「もし動物と話せる」「もし明日から」「もし好きな仕事（職業）に」のような定番すぎる話題は避けてください。
+    ただし、「もし超能力が」「もし動物と話せる」「もし好きな仕事（職業）に」のような定番すぎる話題は避けてください。
     `;
     
     const randomTemperature = Math.random() * 0.5 + 0.5;
