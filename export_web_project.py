@@ -2,11 +2,10 @@ import os
 import datetime
 
 # --- ここを設定してください ---
-# メインスクリプトのファイル名を指定します
-# MAIN_SCRIPT_NAME = "" # 今回は使用しない
-
 # 例外にするディレクトリのリスト
-EXCLUDE_DIRS = ['node_modules', '.git', 'dist']
+EXCLUDE_DIRS = ['node_modules', '.vercel', '.git', 'dist']
+# 例外にするファイルのリスト
+EXCLUDE_FILES = ['package.json', 'package-lock.json']
 # -----------------------------
 
 # HTML/JavaScript/CSSファイルのみを対象
@@ -14,6 +13,7 @@ EXTENSION_TO_LANG = {
     '.html': 'HTML',
     '.js': 'JavaScript',
     '.css': 'CSS',
+    '.json': 'JSON',
 }
 
 TARGET_EXTENSIONS = list(EXTENSION_TO_LANG.keys())
@@ -32,7 +32,8 @@ def collect_files(root_dir):
         
         for file in filenames:
             filepath = os.path.join(dirpath, file)
-            if any(filepath.endswith(ext) for ext in TARGET_EXTENSIONS):
+            # ファイルの拡張子が対象であり、かつファイル名が除外リストに含まれていないか確認
+            if any(filepath.endswith(ext) for ext in TARGET_EXTENSIONS) and file not in EXCLUDE_FILES:
                 all_target_files.append(filepath)
 
     # パスでソートして返す
