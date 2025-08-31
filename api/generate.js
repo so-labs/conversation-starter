@@ -34,14 +34,11 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    // `prompts.json`からプロンプトの配列を抽出
     const basePrompts = promptsData.map(item => item.prompt);
     
-    // `questions.json`からランダムに5個の質問を選択
     const shuffledQuestions = shuffleArray([...questionsData]);
-    const limitedQuestions = shuffledQuestions.slice(0, 5); // 5個に固定
+    const limitedQuestions = shuffledQuestions.slice(0, 5);
 
-    // 選択された質問をプロンプト形式に変換
     const jsonPrompts = limitedQuestions.map(item => {
         if (item.choices) {
             return `${item.question} 回答は選択肢の中から選ぶような形で。`;
@@ -50,15 +47,13 @@ export default async function handler(request, response) {
         }
     });
 
-    // 元のプロンプトとJSONからの質問を結合
     const allPrompts = [...basePrompts, ...jsonPrompts];
 
-    // 結合したリストからランダムに1つのプロンプトを選択
     const randomIndex = Math.floor(Math.random() * allPrompts.length);
     const selectedPromptTemplate = allPrompts[randomIndex];
-
-    // プロンプトに例文の指示を追加
-    const finalPrompt = `
+    
+    const finalPrompt = 
+    `
     これは、会話や思考を促すための「お題」を生成するタスクです。
 
     ${selectedPromptTemplate}

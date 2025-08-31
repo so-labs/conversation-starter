@@ -5,7 +5,7 @@ import datetime
 # 例外にするディレクトリのリスト
 EXCLUDE_DIRS = ['node_modules', '.vercel', '.git', 'dist']
 # 例外にするファイルのリスト
-EXCLUDE_FILES = ['package.json', 'package-lock.json']
+EXCLUDE_FILES = ['package-lock.json']
 # -----------------------------
 
 # HTML/JavaScript/CSSファイルのみを対象
