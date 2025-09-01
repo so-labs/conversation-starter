@@ -17,8 +17,6 @@ const questionsData = readJsonFile(path.join(__dirname, "questions.json"));
 const promptsData = readJsonFile(path.join(__dirname, "prompts.json"));
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL_NAME = "gemini-2.5-flash-lite";
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 // 配列をシャッフルするヘルパー関数
 function shuffleArray(array) {
@@ -33,6 +31,27 @@ export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
+
+    const { model: selectedModel } = request.body; // 追加
+
+    // APIキーがない場合はエラー
+    if (!API_KEY) {
+        return response.status(500).json({ error: "APIキーが設定されていません。" });
+    }
+    
+    // 選択されたモデルが有効かチェック
+    const validModels = [
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash",
+    ];
+    if (!validModels.includes(selectedModel)) {
+        return response.status(400).json({ error: "無効なモデルが選択されました。" });
+    }
+    
+    const genAI = new GoogleGenerativeAI(API_KEY);
 
     const basePrompts = promptsData.map(item => item.prompt);
     
@@ -72,7 +91,7 @@ export default async function handler(request, response) {
 
     try {
         const model = genAI.getGenerativeModel({
-            model: MODEL_NAME,
+            model: selectedModel, // 修正
             generationConfig: {
                 temperature: randomTemperature,
             },

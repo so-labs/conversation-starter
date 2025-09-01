@@ -1,9 +1,13 @@
 const generateButton = document.getElementById('generateButton');
 const ideaDisplay = document.getElementById('ideaDisplay');
+const modelSelect = document.getElementById('modelSelect');
 
 generateButton.addEventListener('click', async () => {
     ideaDisplay.textContent = 'お題を生成中...';
     generateButton.disabled = true;
+
+    // 選択されたモデル名を取得
+    const selectedModel = modelSelect.value;
 
     try {
         const response = await fetch('/api/generate', {
@@ -11,6 +15,7 @@ generateButton.addEventListener('click', async () => {
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ model: selectedModel }),
         });
 
         if (!response.ok) {
