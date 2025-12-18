@@ -49,6 +49,7 @@ export default async function handler(request, response) {
         // Gemini
         "gemini-2.5-flash-lite",
         "gemini-2.5-flash",
+        "gemini-3-flash-preview",
     ];
     if (!validModels.includes(selectedModel)) {
         return response.status(400).json({ error: "無効なモデルが選択されました。" });
