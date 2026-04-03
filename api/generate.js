@@ -41,15 +41,23 @@ export default async function handler(request, response) {
     
     // 選択されたモデルが有効かチェック
     const validModels = [
-        // Gemma
+        // Gemini
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3-flash-preview",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-preview-tts",
+        // Gemma 4
+        "gemma-4-31b-it",
+        "gemma-4-26b-a4b-it",
+        // Gemma 3n
+        "gemma-3n-e4b-it",
+        "gemma-3n-e2b-it",
+        // Gemma 3
         "gemma-3-27b-it",
         "gemma-3-12b-it",
         "gemma-3-4b-it",
         "gemma-3-1b-it",
-        // Gemini
-        "gemini-2.5-flash-lite",
-        "gemini-2.5-flash",
-        "gemini-3-flash-preview",
     ];
     if (!validModels.includes(selectedModel)) {
         return response.status(400).json({ error: "無効なモデルが選択されました。" });

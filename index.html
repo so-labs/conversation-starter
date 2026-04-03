@@ -19,13 +19,27 @@
             <label for="modelSelect">モデルを選択:</label>
             <br>
             <select id="modelSelect">
-                <option value="gemma-3-27b-it">Gemma 3 27B</option>
-                <option value="gemma-3-12b-it">Gemma 3 12B</option>
-                <option value="gemma-3-4b-it">Gemma 3 4B</option>
-                <option value="gemma-3-1b-it">Gemma 3 1B</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Limited)</option>
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Limited)</option>
-                <option value="gemini-3-flash-preview">Gemini 3 Flash Preview (Limited)</option>
+                <optgroup label="Gemini">
+                    <option value="gemini-3.1-flash-lite-preview" selected>Gemini 3.1 Flash Lite</option>
+                    <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+                    <option value="gemini-2.5-flash-preview-tts">Gemini 2.5 Flash TTS</option>
+                </optgroup>
+                <optgroup label="Gemma 4">
+                    <option value="gemma-4-31b-it">Gemma 4 31B</option>
+                    <option value="gemma-4-26b-a4b-it">Gemma 4 26B</option>
+                </optgroup>
+                <optgroup label="Gemma 3n">
+                    <option value="gemma-3n-e4b-it">Gemma 3n E4B</option>
+                    <option value="gemma-3n-e2b-it">Gemma 3n E2B</option>
+                </optgroup>
+                <optgroup label="Gemma 3">
+                    <option value="gemma-3-27b-it">Gemma 3 27B</option>
+                    <option value="gemma-3-12b-it">Gemma 3 12B</option>
+                    <option value="gemma-3-4b-it">Gemma 3 4B</option>
+                    <option value="gemma-3-1b-it">Gemma 3 1B</option>
+                </optgroup>
             </select>
         </div>
 </div>
