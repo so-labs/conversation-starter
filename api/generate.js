@@ -46,10 +46,6 @@ export default async function handler(request, response) {
         "gemini-3-flash-preview",
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        "gemini-2.5-flash-preview-tts",
-        // Gemma 4
-        "gemma-4-31b-it",
-        "gemma-4-26b-a4b-it",
         // Gemma 3n
         "gemma-3n-e4b-it",
         "gemma-3n-e2b-it",
