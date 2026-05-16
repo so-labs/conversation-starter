@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -42,24 +42,18 @@ export default async function handler(request, response) {
     // 選択されたモデルが有効かチェック
     const validModels = [
         // Gemini
-        "gemini-3.1-flash-lite-preview",
-        "gemini-3-flash-preview",
+        "gemini-3.1-flash-lite",
+        "gemini-3-flash",
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        // Gemma 3n
-        "gemma-3n-e4b-it",
-        "gemma-3n-e2b-it",
-        // Gemma 3
-        "gemma-3-27b-it",
-        "gemma-3-12b-it",
-        "gemma-3-4b-it",
-        "gemma-3-1b-it",
+        "gemma-4-26b-a4b-it",
+        "gemma-4-31b-it",
     ];
     if (!validModels.includes(selectedModel)) {
         return response.status(400).json({ error: "無効なモデルが選択されました。" });
     }
     
-    const genAI = new GoogleGenerativeAI(API_KEY);
+    const client = new GoogleGenAI({ apiKey: API_KEY });
 
     const basePrompts = promptsData.map(item => item.prompt);
     
@@ -98,14 +92,35 @@ export default async function handler(request, response) {
     const randomTemperature = Math.random() * 0.5 + 0.5;
 
     try {
-        const model = genAI.getGenerativeModel({
-            model: selectedModel, // 修正
-            generationConfig: {
-                temperature: randomTemperature,
-            },
+        const generationConfig = {
+            temperature: randomTemperature,
+        };
+
+        // Gemma 4またはGemini 3モデルの場合、推論内容（Thinking）を抑制する設定を追加
+        if (selectedModel.startsWith("gemma-4") || selectedModel.startsWith("gemini-3")) {
+            generationConfig.thinkingConfig = {
+                includeThoughts: false,
+                // thinkingLevel: "MINIMAL" // 必要に応じて完全に生成を抑制する場合に使用
+            };
+        }
+
+        const result = await client.models.generateContent({
+            model: selectedModel,
+            contents: finalPrompt,
+            config: generationConfig,
         });
-        const result = await model.generateContent(finalPrompt);
-        const text = result.response.text();
+
+        // 複数のパーツが返ってきた場合に推論パーツを除外してテキストを取得
+        let text = "";
+        if (result.candidates && result.candidates[0].content.parts) {
+            text = result.candidates[0].content.parts
+                .filter(part => !part.thought) // 推論パーツを除外
+                .map(part => part.text)
+                .join("")
+                .trim();
+        } else {
+            text = result.text;
+        }
 
         response.status(200).json({ idea: text });
     } catch (error) {
