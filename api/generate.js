@@ -42,6 +42,7 @@ export default async function handler(request, response) {
     // 選択されたモデルが有効かチェック
     const validModels = [
         // Gemini
+        "gemini-3.5-flash",
         "gemini-3.1-flash-lite",
         "gemini-3-flash",
         "gemini-2.5-flash",
