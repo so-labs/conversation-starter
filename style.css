@@ -1,4 +1,4 @@
-body {
+﻿body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     display: flex;
     justify-content: center;
@@ -80,4 +80,67 @@ h1 {
     font-weight: bold;
     color: #ffffff;
     white-space: pre-wrap;
+}
+
+.mode-select-container {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.mode-select-container label {
+    color: #ECF0F1;
+    font-size: 1em;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mode-select-container input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ECF0F1;
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.mode-select-container input[type="checkbox"]:checked {
+    background-color: #F39C12;
+    border-color: #F39C12;
+}
+
+.mode-select-container input[type="checkbox"]:checked::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.choice-btn {
+    margin: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #ECF0F1;
+    color: #2C3E50;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 0.5em;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.choice-btn:hover {
+    transform: translateY(-2px);
+    background-color: #F39C12;
+    color: white;
 }

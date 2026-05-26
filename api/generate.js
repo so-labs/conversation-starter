@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+﻿import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -28,11 +28,11 @@ function shuffleArray(array) {
 }
 
 export default async function handler(request, response) {
-    if (request.method !== 'POST') {
+    if (request.method!== 'POST') {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const { model: selectedModel } = request.body; // 追加
+    const { model: selectedModel, mode = 'default' } = request.body; // 追加
 
     // APIキーがない場合はエラー
     if (!API_KEY) {
@@ -73,9 +73,26 @@ export default async function handler(request, response) {
 
     const randomIndex = Math.floor(Math.random() * allPrompts.length);
     const selectedPromptTemplate = allPrompts[randomIndex];
-    
-    const finalPrompt = 
+
+    const isChoiceOnly = mode === 'choice_only';
+
+    const finalPrompt = isChoiceOnly
+   ? `
+    これは、会話や思考を促すための「お題」を生成するタスクです。
+
+    ${selectedPromptTemplate}
+
+    以下の質問文は参考例です。参考例をそのまま使用することは禁止です。
+    これらを参考に、全く新しい質問文を作成してください。
+
+    例:
+    - ${limitedQuestions.map(q => q.question).join('\n- ')}
+
+    回答は必ずJSON形式で返してください。
+    {"question":"...？","choices":["...","...","..."]}
+    ルール：questionは自然な日本語の疑問文（？で終わる）、choicesは2〜4個、各15文字以内、どれも選びたくなるバランス、定番すぎる話題は避ける、説明文は不要
     `
+    : `
     これは、会話や思考を促すための「お題」を生成するタスクです。
 
     ${selectedPromptTemplate}
@@ -97,6 +114,10 @@ export default async function handler(request, response) {
             temperature: randomTemperature,
         };
 
+        if (isChoiceOnly) {
+            generationConfig.responseMimeType = "application/json";
+        }
+
         // Gemma 4またはGemini 3モデルの場合、推論内容（Thinking）を抑制する設定を追加
         if (selectedModel.startsWith("gemma-4") || selectedModel.startsWith("gemini-3")) {
             generationConfig.thinkingConfig = {
@@ -115,15 +136,29 @@ export default async function handler(request, response) {
         let text = "";
         if (result.candidates && result.candidates[0].content.parts) {
             text = result.candidates[0].content.parts
-                .filter(part => !part.thought) // 推論パーツを除外
-                .map(part => part.text)
-                .join("")
-                .trim();
+               .filter(part =>!part.thought) // 推論パーツを除外
+               .map(part => part.text)
+               .join("")
+               .trim();
         } else {
             text = result.text;
         }
 
-        response.status(200).json({ idea: text });
+        if (isChoiceOnly) {
+            try {
+                const parsed = JSON.parse(text);
+                const question = parsed.question || text;
+                let choices = Array.isArray(parsed.choices)? parsed.choices : [];
+                // 2〜4個に整形
+                if (choices.length > 4) choices = choices.slice(0, 4);
+                if (choices.length < 2) choices = [];
+                response.status(200).json({ idea: question, choices });
+            } catch (e) {
+                response.status(200).json({ idea: text });
+            }
+        } else {
+            response.status(200).json({ idea: text });
+        }
     } catch (error) {
         console.error('API呼び出しでエラー:', error);
         console.error('エラー詳細:', error.message);

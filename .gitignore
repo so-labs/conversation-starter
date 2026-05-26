@@ -8,3 +8,6 @@ package-lock.json
 
 # Markdownエクスポートファイル
 export_*.md
+
+# Other ignores
+.antigravitycli
