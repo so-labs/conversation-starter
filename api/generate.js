@@ -15,30 +15,32 @@ const readJsonFile = (filePath) => {
 
 const questionsData = readJsonFile(path.join(__dirname, "questions.json"));
 const promptsData = readJsonFile(path.join(__dirname, "prompts.json"));
+// 汎用NGリスト（naughty-words）を起動時に一度だけ読み込み
+const ngWords = readJsonFile(path.join(__dirname, "..", "node_modules", "naughty-words", "ja.json"));
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
 // 配列をシャッフルするヘルパー関数
 function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 }
 
 export default async function handler(request, response) {
-    if (request.method!== 'POST') {
+    if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const { model: selectedModel, mode = 'default' } = request.body; // 追加
+    const { model: selectedModel, mode = 'default', word = '' } = request.body; // 追加
 
     // APIキーがない場合はエラー
     if (!API_KEY) {
         return response.status(500).json({ error: "APIキーが設定されていません。" });
     }
-    
+
     // 選択されたモデルが有効かチェック
     const validModels = [
         // Gemini
@@ -53,11 +55,11 @@ export default async function handler(request, response) {
     if (!validModels.includes(selectedModel)) {
         return response.status(400).json({ error: "無効なモデルが選択されました。" });
     }
-    
+
     const client = new GoogleGenAI({ apiKey: API_KEY });
 
     const basePrompts = promptsData.map(item => item.prompt);
-    
+
     const shuffledQuestions = shuffleArray([...questionsData]);
     const limitedQuestions = shuffledQuestions.slice(0, 8); // 例を8個渡す
 
@@ -74,10 +76,63 @@ export default async function handler(request, response) {
     const randomIndex = Math.floor(Math.random() * allPrompts.length);
     const selectedPromptTemplate = allPrompts[randomIndex];
 
-    const isChoiceOnly = mode === 'choice_only';
+    const isChoiceOnly = mode === 'choice_only' || mode === 'custom_word_choice';
+    const isCustomWord = mode === 'custom_word' || mode === 'custom_word_choice';
 
-    const finalPrompt = isChoiceOnly
-   ? `
+    // ワード指定モードの処理
+    let cleanWord = '';
+    if (isCustomWord) {
+        cleanWord = String(word || '').trim().slice(0, 10);
+        if (!cleanWord) {
+            return response.status(400).json({ error: "ワードが指定されていません。" });
+        }
+        // 単語のみ・10文字以内・空白や記号は不可（文章を入れさせない）
+        const allowedPattern = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}a-zA-Z0-9ー]{1,10}$/u;
+        if (!allowedPattern.test(cleanWord)) {
+            return response.status(400).json({ error: "単語のみ・10文字以内で入力してください。" });
+        }
+        // 汎用NGリスト（naughty-words）でチェック - 最低限
+        const hasNg = ngWords.some(w => cleanWord.toLowerCase().includes(w.toLowerCase()));
+        // URLや記号の羅列は別途チェック
+        const ngPattern = /(https?:\/\/|www\.|[<>{}[\]\\\/])/i;
+        if (ngPattern.test(cleanWord) || hasNg) {
+            return response.status(400).json({ error: "不適切なワードが含まれています。" });
+        }
+    }
+
+    const finalPrompt = isCustomWord
+        ? (isChoiceOnly
+            ? `
+    これは、会話や思考を促すための「お題」を生成するタスクです。
+
+    ユーザーが指定したワード「${cleanWord}」を必ず含めて、自然な日本語の疑問文を一つ作成してください。
+
+    以下の質問文は参考例です。参考例をそのまま使用することは禁止です。
+    これらを参考に、全く新しい質問文を作成してください。
+
+    例:
+        - ${limitedQuestions.map(q => q.question).join('\n- ')}
+
+    回答は必ずJSON形式で返してください。
+    {"question":"...？","choices":["...","...","..."]}
+    ルール：questionは「${cleanWord}」を含み、自然な日本語の疑問文（？で終わる）、choicesは2〜4個、各15文字以内、どれも選びたくなるバランス、説明文は不要
+    `
+            : `
+    これは、会話や思考を促すための「お題」を生成するタスクです。
+
+    ユーザーが指定したワード「${cleanWord}」を必ず含めて、自然な日本語の疑問文（？で終わる）を一つだけ作成してください。
+
+    以下の質問文は、回答を生成するための参考例です。参考例をそのまま使用することは禁止です。
+    これらの質問を参考に、全く新しい質問文を作成してください。
+
+    例:
+        - ${limitedQuestions.map(q => q.question).join('\n- ')}
+
+    回答は、お題を自然な日本語の疑問文（？で終わる）にした文章一つだけで、それ以外の説明文や装飾は一切不要です。
+    ワード「${cleanWord}」は必ず含めてください。
+    `)
+        : (isChoiceOnly
+            ? `
     これは、会話や思考を促すための「お題」を生成するタスクです。
 
     ${selectedPromptTemplate}
@@ -86,13 +141,13 @@ export default async function handler(request, response) {
     これらを参考に、全く新しい質問文を作成してください。
 
     例:
-    - ${limitedQuestions.map(q => q.question).join('\n- ')}
+        - ${limitedQuestions.map(q => q.question).join('\n- ')}
 
     回答は必ずJSON形式で返してください。
     {"question":"...？","choices":["...","...","..."]}
     ルール：questionは自然な日本語の疑問文（？で終わる）、choicesは2〜4個、各15文字以内、どれも選びたくなるバランス、定番すぎる話題は避ける、説明文は不要
     `
-    : `
+            : `
     これは、会話や思考を促すための「お題」を生成するタスクです。
 
     ${selectedPromptTemplate}
@@ -101,12 +156,12 @@ export default async function handler(request, response) {
     これらの質問を参考に、全く新しい質問文を作成してください。
 
     例:
-    - ${limitedQuestions.map(q => q.question).join('\n- ')}
+        - ${limitedQuestions.map(q => q.question).join('\n- ')}
 
     回答は、お題を自然な日本語の疑問文（？で終わる）にした文章一つだけで、それ以外の説明文や装飾は一切不要です。
     ただし、「もし超能力が」「もし動物と話せる」「もし好きな仕事（職業）に」のような定番すぎる話題は避けてください。
-    `;
-    
+    `);
+
     const randomTemperature = Math.random() * 0.5 + 0.5;
 
     try {
@@ -136,10 +191,10 @@ export default async function handler(request, response) {
         let text = "";
         if (result.candidates && result.candidates[0].content.parts) {
             text = result.candidates[0].content.parts
-               .filter(part =>!part.thought) // 推論パーツを除外
-               .map(part => part.text)
-               .join("")
-               .trim();
+                .filter(part => !part.thought) // 推論パーツを除外
+                .map(part => part.text)
+                .join("")
+                .trim();
         } else {
             text = result.text;
         }
@@ -148,7 +203,7 @@ export default async function handler(request, response) {
             try {
                 const parsed = JSON.parse(text);
                 const question = parsed.question || text;
-                let choices = Array.isArray(parsed.choices)? parsed.choices : [];
+                let choices = Array.isArray(parsed.choices) ? parsed.choices : [];
                 // 2〜4個に整形
                 if (choices.length > 4) choices = choices.slice(0, 4);
                 if (choices.length < 2) choices = [];

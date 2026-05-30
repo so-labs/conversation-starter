@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,12 +11,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <h1>お題生成</h1>
         <button id="generateButton">生成！</button>
         <div class="mode-select-container">
             <label><input type="checkbox" id="choiceOnly"> 選択肢のみ</label>
+        </div>
+        <div class="custom-word-container">
+            <label><input type="checkbox" id="customWordMode"> ワード指定</label>
+            <input type="text" id="customWordInput" placeholder="単語・最大10文字" maxlength="10" disabled>
         </div>
         <p id="ideaDisplay"></p>
         <div class="model-select-container">
@@ -39,4 +45,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
