@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="お題生成器 icon">
+  <rect width="192" height="192" rx="40" fill="#f59e0b"/>
+  <path d="M54 58h84" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+  <path d="M54 96h56" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+  <path d="M54 134h72" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="138" cy="134" r="20" fill="#fff"/>
+  <path d="M132 134l8 8 15-15" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

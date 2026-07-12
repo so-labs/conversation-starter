@@ -1,0 +1,17 @@
+{
+  "name": "お題生成器",
+  "short_name": "お題生成器",
+  "description": "AIにお題を生成してもらうためのシンプルなWebアプリです。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
