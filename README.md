@@ -1,2 +1,3 @@
 # conversation-starter
-A conversation starter using Gemini API.
+
+Gemini APIを使った会話のお題生成器
