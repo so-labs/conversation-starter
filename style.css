@@ -1,11 +1,12 @@
 ﻿body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    min-height: 100vh; /* 古いブラウザ用フォールバック */
+    min-height: 100dvh;
     margin: 0;
     background-color: #2C3E50;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .container {
@@ -15,6 +16,9 @@
     border-radius: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 800px;
+    width: 100%;
+    margin: auto; /* Flex環境で安全な中央配置 */
+    box-sizing: border-box;
 }
 
 .model-select-container {
