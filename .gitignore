@@ -1,13 +1,13 @@
 # Dependencies
 node_modules/
+devtools/
 package-lock.json
 .env*
+*config.json
+*_local_*
 
 # Vercel artifacts
 .vercel
-
-# Markdownエクスポートファイル
-export_*.md
 
 # Other ignores
 .antigravitycli
