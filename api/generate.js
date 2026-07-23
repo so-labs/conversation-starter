@@ -20,6 +20,34 @@ const ngWords = readJsonFile(path.join(__dirname, "..", "node_modules", "naughty
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
+// 有効なモデルのキャッシュ（プロセス再起動・リロードまで保持）
+let cachedValidModels = null;
+
+async function getValidModels(client) {
+    if (cachedValidModels) {
+        return cachedValidModels;
+    }
+
+    try {
+        const validModels = new Set();
+        const modelsList = await client.models.list();
+        for await (const m of modelsList) {
+            const methods = m.supportedGenerationMethods || [];
+            if (methods.length === 0 || methods.includes("generateContent")) {
+                const fullPath = m.name || "";
+                const nameWithoutPrefix = fullPath.replace(/^models\//, "");
+                validModels.add(fullPath);
+                validModels.add(nameWithoutPrefix);
+            }
+        }
+        cachedValidModels = validModels;
+        return cachedValidModels;
+    } catch (error) {
+        console.error("モデル一覧の取得に失敗しました:", error);
+        return null;
+    }
+}
+
 // 配列をシャッフルするヘルパー関数
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -41,22 +69,13 @@ export default async function handler(request, response) {
         return response.status(500).json({ error: "APIキーが設定されていません。" });
     }
 
-    // 選択されたモデルが有効かチェック
-    const validModels = [
-        // Gemini
-        "gemini-3.5-flash",
-        "gemini-3.1-flash-lite",
-        "gemini-3-flash",
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
-        "gemma-4-26b-a4b-it",
-        "gemma-4-31b-it",
-    ];
-    if (!validModels.includes(selectedModel)) {
+    const client = new GoogleGenAI({ apiKey: API_KEY });
+
+    // 選択されたモデルが有効かチェック（Gemini APIから取得したモデル一覧で動的に検証）
+    const validModels = await getValidModels(client);
+    if (validModels && !validModels.has(selectedModel)) {
         return response.status(400).json({ error: "無効なモデルが選択されました。" });
     }
-
-    const client = new GoogleGenAI({ apiKey: API_KEY });
 
     const basePrompts = promptsData.map(item => item.prompt);
 
