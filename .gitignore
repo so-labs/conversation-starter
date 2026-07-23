@@ -5,6 +5,8 @@ package-lock.json
 .env*
 *config.json
 *_local_*
+*.txt
+*.diff
 
 # Vercel artifacts
 .vercel
