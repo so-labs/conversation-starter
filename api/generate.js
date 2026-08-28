@@ -1,4 +1,4 @@
-﻿import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -200,11 +200,30 @@ export default async function handler(request, response) {
             };
         }
 
-        const result = await client.models.generateContent({
-            model: selectedModel,
-            contents: finalPrompt,
-            config: generationConfig,
-        });
+        let result;
+        const maxRetries = 1;
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                result = await client.models.generateContent({
+                    model: selectedModel,
+                    contents: finalPrompt,
+                    config: generationConfig,
+                });
+                break;
+            } catch (err) {
+                const isUnavailable = err?.status === 503 ||
+                    err?.message?.includes("503") ||
+                    err?.message?.includes("high demand") ||
+                    err?.message?.includes("UNAVAILABLE");
+
+                if (isUnavailable && attempt < maxRetries) {
+                    console.warn(`モデル高負荷のため再試行します（1秒待機）`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                throw err;
+            }
+        }
 
         // 複数のパーツが返ってきた場合に推論パーツを除外してテキストを取得
         let text = "";
@@ -236,6 +255,16 @@ export default async function handler(request, response) {
     } catch (error) {
         console.error('API呼び出しでエラー:', error);
         console.error('エラー詳細:', error.message);
-        response.status(500).json({ error: "API呼び出しに失敗しました。" });
+
+        const isUnavailable = error?.status === 503 ||
+            error?.message?.includes("503") ||
+            error?.message?.includes("high demand") ||
+            error?.message?.includes("UNAVAILABLE");
+
+        if (isUnavailable) {
+            response.status(503).json({ error: "現在モデルが混雑しています。しばらく経ってから再度お試しいただくか、他のモデルをお選びください。" });
+        } else {
+            response.status(500).json({ error: "API呼び出しに失敗しました。" });
+        }
     }
 }
