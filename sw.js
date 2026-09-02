@@ -4,6 +4,7 @@ const ASSETS_TO_CACHE = [
   './index.html',
   './style.css',
   './script.js',
+  './models.json',
   './manifest.json',
   './icons/icon.svg'
 ];

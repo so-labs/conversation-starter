@@ -1,4 +1,4 @@
-﻿const generateButton = document.getElementById('generateButton');
+const generateButton = document.getElementById('generateButton');
 const ideaDisplay = document.getElementById('ideaDisplay');
 const modelSelect = document.getElementById('modelSelect');
 const choiceOnly = document.getElementById('choiceOnly');
@@ -15,12 +15,58 @@ if (customWordMode) {
     });
 }
 
+// モデル一覧の読み込みとセレクトボックス生成
+async function loadModels() {
+    try {
+        const response = await fetch('./models.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const groups = await response.json();
+
+        modelSelect.innerHTML = '';
+        let hasSelected = false;
+
+        groups.forEach((group) => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = group.group;
+
+            group.models.forEach((model) => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.name;
+                if (model.default && !hasSelected) {
+                    option.selected = true;
+                    hasSelected = true;
+                }
+                optgroup.appendChild(option);
+            });
+
+            modelSelect.appendChild(optgroup);
+        });
+
+        if (!hasSelected && modelSelect.options.length > 0) {
+            modelSelect.options[0].selected = true;
+        }
+    } catch (error) {
+        console.error('モデル一覧の取得に失敗しました:', error);
+        modelSelect.innerHTML = '<option value="">モデルの取得に失敗しました</option>';
+    }
+}
+
+loadModels();
+
 generateButton.addEventListener('click', async () => {
     ideaDisplay.textContent = 'お題を生成中...';
     generateButton.disabled = true;
 
     // 選択されたモデル名を取得
     const selectedModel = modelSelect.value;
+    if (!selectedModel) {
+        ideaDisplay.textContent = 'モデルを選択してください。';
+        generateButton.disabled = false;
+        return;
+    }
     let mode = choiceOnly && choiceOnly.checked ? 'choice_only' : 'default';
     let word = '';
 
