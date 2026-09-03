@@ -20,7 +20,7 @@ const ngWords = readJsonFile(path.join(__dirname, "..", "node_modules", "naughty
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
-// models.json から定義済みモデル一覧を読み込み
+// models.json から定義済みモデル一覧を読み込み（ホワイトリスト）
 let localValidModels = new Set();
 try {
     const modelsConfig = readJsonFile(path.join(__dirname, "..", "models.json"));
@@ -34,42 +34,6 @@ try {
     });
 } catch (e) {
     console.warn("models.jsonの読み込みに失敗しました:", e.message);
-}
-
-// 有効なモデルのキャッシュ（プロセス再起動・リロードまで保持）
-let cachedValidModels = null;
-
-async function getValidModels(client) {
-    if (cachedValidModels) {
-        return cachedValidModels;
-    }
-
-    try {
-        const validModels = new Set(localValidModels);
-        // APIからのモデル一覧取得に最大3秒のタイムアウトを設定
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("models.list timeout")), 3000)
-        );
-        const fetchModelsPromise = (async () => {
-            const modelsList = await client.models.list();
-            for await (const m of modelsList) {
-                const methods = m.supportedGenerationMethods || [];
-                if (methods.length === 0 || methods.includes("generateContent")) {
-                    const fullPath = m.name || "";
-                    const nameWithoutPrefix = fullPath.replace(/^models\//, "");
-                    validModels.add(fullPath);
-                    validModels.add(nameWithoutPrefix);
-                }
-            }
-            return validModels;
-        })();
-
-        cachedValidModels = await Promise.race([fetchModelsPromise, timeoutPromise]);
-        return cachedValidModels;
-    } catch (error) {
-        console.warn("APIからのモデル一覧取得をスキップ（定義済みモデルを使用）:", error.message);
-        return localValidModels;
-    }
 }
 
 // 配列をシャッフルするヘルパー関数
@@ -97,14 +61,10 @@ export default async function handler(request, response) {
         return response.status(500).json({ error: "APIキーが設定されていません。" });
     }
 
-    // 定義済みモデルに含まれていない場合のみAPIで動的検証
-    if (!localValidModels.has(selectedModel)) {
-        const client = new GoogleGenAI({ apiKey: API_KEY });
-        const validModels = await getValidModels(client);
-        if (validModels && !validModels.has(selectedModel)) {
-            console.warn(`[generate] 無効なモデル指定: ${selectedModel}`);
-            return response.status(400).json({ error: "無効なモデルが選択されました。" });
-        }
+    // models.json に定義されたモデル以外は一律拒否（完全ホワイトリスト検証）
+    if (!selectedModel || !localValidModels.has(selectedModel)) {
+        console.warn(`[generate] 許可されていないモデルの指定: ${selectedModel}`);
+        return response.status(400).json({ error: "無効なモデルが選択されました。" });
     }
 
     const basePrompts = promptsData.map(item => item.prompt);
