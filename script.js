@@ -39,6 +39,7 @@ const modelSelect = document.getElementById('modelSelect');
 const choiceOnly = document.getElementById('choiceOnly');
 const customWordMode = document.getElementById('customWordMode');
 const customWordInput = document.getElementById('customWordInput');
+const loadingModal = document.getElementById('loadingModal');
 
 // ワード指定の有効/無効切り替え
 if (customWordMode) {
@@ -92,14 +93,12 @@ async function loadModels() {
 loadModels();
 
 generateButton.addEventListener('click', async () => {
-    ideaDisplay.textContent = 'お題を生成中...';
     errorDisplay.textContent = '';
     generateButton.disabled = true;
 
     // 選択されたモデル名を取得
     const selectedModel = modelSelect.value;
     if (!selectedModel) {
-        ideaDisplay.textContent = '';
         errorDisplay.textContent = 'モデルを選択してください。';
         generateButton.disabled = false;
         return;
@@ -110,7 +109,6 @@ generateButton.addEventListener('click', async () => {
     if (customWordMode && customWordMode.checked) {
         word = (customWordInput.value || '').trim().slice(0, 10);
         if (!word) {
-            ideaDisplay.textContent = '';
             errorDisplay.textContent = 'ワードを入力してください（単語・最大10文字）';
             generateButton.disabled = false;
             return;
@@ -120,6 +118,8 @@ generateButton.addEventListener('click', async () => {
             mode = 'custom_word_choice';
         }
     }
+
+    loadingModal.classList.remove('hidden');
 
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -172,6 +172,7 @@ generateButton.addEventListener('click', async () => {
         }
     } finally {
         generateButton.disabled = false;
+        loadingModal.classList.add('hidden');
     }
 });
 
