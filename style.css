@@ -1,3 +1,53 @@
+﻿:root {
+    --bg-color: #F0F2F5;
+    --container-bg: #FFFFFF;
+    --text-color: #34495E;
+    --text-color-strong: #2C3E50;
+    --primary-color: #F39C12;
+    --input-bg: #FFFFFF;
+    --input-text: #2C3E50;
+    --input-border: #BDC3C7;
+    --toggle-active-bg: #E0E4E8;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #2C3E50;
+        --container-bg: #34495E;
+        --text-color: #ECF0F1;
+        --text-color-strong: #ffffff;
+        --primary-color: #F39C12;
+        --input-bg: #ECF0F1;
+        --input-text: #2C3E50;
+        --input-border: #34495E;
+        --toggle-active-bg: #2C3E50;
+    }
+}
+
+[data-theme="light"] {
+    --bg-color: #F0F2F5;
+    --container-bg: #FFFFFF;
+    --text-color: #34495E;
+    --text-color-strong: #2C3E50;
+    --primary-color: #F39C12;
+    --input-bg: #FFFFFF;
+    --input-text: #2C3E50;
+    --input-border: #BDC3C7;
+    --toggle-active-bg: #E0E4E8;
+}
+
+[data-theme="dark"] {
+    --bg-color: #2C3E50;
+    --container-bg: #34495E;
+    --text-color: #ECF0F1;
+    --text-color-strong: #ffffff;
+    --primary-color: #F39C12;
+    --input-bg: #ECF0F1;
+    --input-text: #2C3E50;
+    --input-border: #34495E;
+    --toggle-active-bg: #2C3E50;
+}
+
 body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     display: flex;
@@ -5,15 +55,25 @@ body {
     /* 古いブラウザ用フォールバック */
     min-height: 100dvh;
     margin: 0;
-    background-color: #2C3E50;
+    background-color: var(--bg-color);
     padding: 20px;
     box-sizing: border-box;
+}
+
+.main-wrapper {
+    margin: auto;
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }
 
 .container {
     text-align: center;
     padding: 40px;
-    background-color: #34495E;
+    background-color: var(--container-bg);
     border-radius: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 800px;
@@ -28,7 +88,7 @@ body {
 }
 
 .model-select-container label {
-    color: #ECF0F1;
+    color: var(--text-color);
     font-size: 1.2em;
     font-weight: bold;
     margin-right: 10px;
@@ -39,10 +99,10 @@ body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     font-size: 1.1em;
     padding: 5px;
-    border: 2px solid #34495E;
+    border: 2px solid var(--input-border);
     border-radius: 10px;
-    background-color: #ECF0F1;
-    color: #2C3E50;
+    background-color: var(--input-bg);
+    color: var(--input-text);
     cursor: pointer;
     appearance: none;
     /* デフォルトの矢印を非表示にする */
@@ -50,18 +110,18 @@ body {
 
 /* プルダウンメニューのホバー時のスタイル */
 #modelSelect:hover {
-    border-color: #F39C12;
+    border-color: var(--primary-color);
 }
 
 /* プルダウンメニューのフォーカス時のスタイル */
 #modelSelect:focus {
     outline: none;
-    border-color: #F39C12;
+    border-color: var(--primary-color);
     box-shadow: 0 0 5px rgba(243, 156, 18, 0.5);
 }
 
 h1 {
-    color: #ECF0F1;
+    color: var(--text-color-strong);
     font-size: 2.5em;
 }
 
@@ -72,7 +132,7 @@ h1 {
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #F39C12;
+    background-color: var(--primary-color);
     color: white;
     transition: background-color 0.3s;
 }
@@ -93,7 +153,7 @@ h1 {
     margin-top: 30px;
     font-size: 3em;
     font-weight: bold;
-    color: #ffffff;
+    color: var(--text-color-strong);
     white-space: pre-wrap;
 }
 
@@ -103,7 +163,7 @@ h1 {
 }
 
 .mode-select-container label {
-    color: #ECF0F1;
+    color: var(--text-color);
     font-size: 1em;
     cursor: pointer;
     user-select: none;
@@ -116,7 +176,7 @@ h1 {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #ECF0F1;
+    border: 2px solid var(--text-color);
     border-radius: 4px;
     background-color: transparent;
     cursor: pointer;
@@ -125,8 +185,8 @@ h1 {
 }
 
 .mode-select-container input[type="checkbox"]:checked {
-    background-color: #F39C12;
-    border-color: #F39C12;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .mode-select-container input[type="checkbox"]:checked::after {
@@ -151,7 +211,7 @@ h1 {
 }
 
 .custom-word-container label {
-    color: #ECF0F1;
+    color: var(--text-color);
     font-size: 1em;
     cursor: pointer;
     user-select: none;
@@ -164,7 +224,7 @@ h1 {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #ECF0F1;
+    border: 2px solid var(--text-color);
     border-radius: 4px;
     background-color: transparent;
     cursor: pointer;
@@ -173,8 +233,8 @@ h1 {
 }
 
 .custom-word-container input[type="checkbox"]:checked {
-    background-color: #F39C12;
-    border-color: #F39C12;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .custom-word-container input[type="checkbox"]:checked::after {
@@ -193,17 +253,17 @@ h1 {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     font-size: 1em;
     padding: 6px 10px;
-    border: 2px solid #34495E;
+    border: 2px solid var(--input-border);
     border-radius: 8px;
-    background-color: #ECF0F1;
-    color: #2C3E50;
+    background-color: var(--input-bg);
+    color: var(--input-text);
     width: 160px;
     transition: border-color 0.2s;
 }
 
 .custom-word-container input[type="text"]:focus {
     outline: none;
-    border-color: #F39C12;
+    border-color: var(--primary-color);
 }
 
 .custom-word-container input[type="text"]:disabled {
@@ -216,8 +276,8 @@ h1 {
     padding: 10px 16px;
     border: none;
     border-radius: 12px;
-    background: #ECF0F1;
-    color: #2C3E50;
+    background: var(--input-bg);
+    color: var(--input-text);
     font-family: 'M PLUS Rounded 1c', sans-serif;
     font-size: 0.5em;
     cursor: pointer;
@@ -226,6 +286,45 @@ h1 {
 
 .choice-btn:hover {
     transform: translateY(-2px);
-    background-color: #F39C12;
+    background-color: var(--primary-color);
     color: white;
+}
+
+/* テーマ切り替え用のスタイル */
+.theme-toggle {
+    display: inline-flex;
+    background-color: var(--container-bg);
+    border-radius: 30px;
+    padding: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-option {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.theme-option input {
+    appearance: none;
+    position: absolute;
+    opacity: 0;
+}
+
+.theme-option span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--text-color);
+    border-radius: 25px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.theme-option input:checked + span {
+    background-color: var(--toggle-active-bg);
+    color: var(--text-color-strong);
 }

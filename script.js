@@ -1,3 +1,37 @@
+﻿// テーマ設定
+const themeRadios = document.querySelectorAll('input[name="theme"]');
+const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+function applyTheme(theme) {
+    if (theme === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+}
+
+const savedTheme = localStorage.getItem('theme') || 'system';
+const selectedRadio = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
+if (selectedRadio) {
+    selectedRadio.checked = true;
+}
+applyTheme(savedTheme);
+
+themeRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        localStorage.setItem('theme', theme);
+        applyTheme(theme);
+    });
+});
+
+prefersDarkScheme.addEventListener('change', () => {
+    const currentTheme = localStorage.getItem('theme') || 'system';
+    if (currentTheme === 'system') {
+        applyTheme('system');
+    }
+});
+
 const generateButton = document.getElementById('generateButton');
 const ideaDisplay = document.getElementById('ideaDisplay');
 const modelSelect = document.getElementById('modelSelect');
