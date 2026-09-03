@@ -83,6 +83,11 @@ generateButton.addEventListener('click', async () => {
         }
     }
 
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+        abortController.abort();
+    }, 20000); // 20秒タイムアウト
+
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
@@ -90,9 +95,19 @@ generateButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ model: selectedModel, mode, word }),
+            signal: abortController.signal,
         });
 
-        const data = await response.json();
+        clearTimeout(timeoutId);
+
+        let data = {};
+        try {
+            data = await response.json();
+        } catch {
+            if (!response.ok) {
+                throw new Error(`通信エラーが発生しました (HTTP ${response.status})`);
+            }
+        }
 
         if (!response.ok) {
             throw new Error(data.error || `HTTP error! status: ${response.status}`);
@@ -108,8 +123,13 @@ generateButton.addEventListener('click', async () => {
             ideaDisplay.textContent = '生成に失敗しました。';
         }
     } catch (error) {
+        clearTimeout(timeoutId);
         console.error('クライアントサイドでのエラー:', error);
-        ideaDisplay.textContent = error.message || '通信エラーが発生しました。';
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+            ideaDisplay.textContent = '生成処理がタイムアウトしました（20秒）。混雑している可能性があるため、再度試すか別のモデルをお試しください。';
+        } else {
+            ideaDisplay.textContent = error.message || '通信エラーが発生しました。';
+        }
     } finally {
         generateButton.disabled = false;
     }

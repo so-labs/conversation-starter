@@ -20,6 +20,22 @@ const ngWords = readJsonFile(path.join(__dirname, "..", "node_modules", "naughty
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
+// models.json から定義済みモデル一覧を読み込み
+let localValidModels = new Set();
+try {
+    const modelsConfig = readJsonFile(path.join(__dirname, "..", "models.json"));
+    modelsConfig.forEach(group => {
+        group.models?.forEach(m => {
+            if (m.id) {
+                localValidModels.add(m.id);
+                localValidModels.add(`models/${m.id}`);
+            }
+        });
+    });
+} catch (e) {
+    console.warn("models.jsonの読み込みに失敗しました:", e.message);
+}
+
 // 有効なモデルのキャッシュ（プロセス再起動・リロードまで保持）
 let cachedValidModels = null;
 
@@ -29,22 +45,30 @@ async function getValidModels(client) {
     }
 
     try {
-        const validModels = new Set();
-        const modelsList = await client.models.list();
-        for await (const m of modelsList) {
-            const methods = m.supportedGenerationMethods || [];
-            if (methods.length === 0 || methods.includes("generateContent")) {
-                const fullPath = m.name || "";
-                const nameWithoutPrefix = fullPath.replace(/^models\//, "");
-                validModels.add(fullPath);
-                validModels.add(nameWithoutPrefix);
+        const validModels = new Set(localValidModels);
+        // APIからのモデル一覧取得に最大3秒のタイムアウトを設定
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("models.list timeout")), 3000)
+        );
+        const fetchModelsPromise = (async () => {
+            const modelsList = await client.models.list();
+            for await (const m of modelsList) {
+                const methods = m.supportedGenerationMethods || [];
+                if (methods.length === 0 || methods.includes("generateContent")) {
+                    const fullPath = m.name || "";
+                    const nameWithoutPrefix = fullPath.replace(/^models\//, "");
+                    validModels.add(fullPath);
+                    validModels.add(nameWithoutPrefix);
+                }
             }
-        }
-        cachedValidModels = validModels;
+            return validModels;
+        })();
+
+        cachedValidModels = await Promise.race([fetchModelsPromise, timeoutPromise]);
         return cachedValidModels;
     } catch (error) {
-        console.error("モデル一覧の取得に失敗しました:", error);
-        return null;
+        console.warn("APIからのモデル一覧取得をスキップ（定義済みモデルを使用）:", error.message);
+        return localValidModels;
     }
 }
 
@@ -58,23 +82,29 @@ function shuffleArray(array) {
 }
 
 export default async function handler(request, response) {
+    const startTime = Date.now();
+
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const { model: selectedModel, mode = 'default', word = '' } = request.body; // 追加
+    const { model: selectedModel, mode = 'default', word = '' } = request.body || {};
+    console.log(`[generate] リクエスト受信: model=${selectedModel}, mode=${mode}, word=${word ? `"${word}"` : '(なし)'}`);
 
     // APIキーがない場合はエラー
     if (!API_KEY) {
+        console.error("[generate] エラー: APIキーが設定されていません。");
         return response.status(500).json({ error: "APIキーが設定されていません。" });
     }
 
-    const client = new GoogleGenAI({ apiKey: API_KEY });
-
-    // 選択されたモデルが有効かチェック（Gemini APIから取得したモデル一覧で動的に検証）
-    const validModels = await getValidModels(client);
-    if (validModels && !validModels.has(selectedModel)) {
-        return response.status(400).json({ error: "無効なモデルが選択されました。" });
+    // 定義済みモデルに含まれていない場合のみAPIで動的検証
+    if (!localValidModels.has(selectedModel)) {
+        const client = new GoogleGenAI({ apiKey: API_KEY });
+        const validModels = await getValidModels(client);
+        if (validModels && !validModels.has(selectedModel)) {
+            console.warn(`[generate] 無効なモデル指定: ${selectedModel}`);
+            return response.status(400).json({ error: "無効なモデルが選択されました。" });
+        }
     }
 
     const basePrompts = promptsData.map(item => item.prompt);
@@ -200,24 +230,47 @@ export default async function handler(request, response) {
             };
         }
 
+        const client = new GoogleGenAI({ apiKey: API_KEY });
+        const API_TIMEOUT_MS = 20000; // 20秒タイムアウト
+
         let result;
         const maxRetries = 1;
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            let timer;
             try {
-                result = await client.models.generateContent({
+                console.log(`[generate] API呼び出し開始 (${attempt + 1}/${maxRetries + 1}): model=${selectedModel}`);
+
+                const timeoutPromise = new Promise((_, reject) => {
+                    timer = setTimeout(() => {
+                        const err = new Error(`API呼び出しが${API_TIMEOUT_MS / 1000}秒以内に完了しませんでした（タイムアウト）`);
+                        err.name = "TimeoutError";
+                        reject(err);
+                    }, API_TIMEOUT_MS);
+                });
+
+                const apiCallPromise = client.models.generateContent({
                     model: selectedModel,
                     contents: finalPrompt,
                     config: generationConfig,
                 });
+
+                result = await Promise.race([apiCallPromise, timeoutPromise]);
+                clearTimeout(timer);
                 break;
             } catch (err) {
+                clearTimeout(timer);
+                if (err.name === "TimeoutError") {
+                    console.error(`[generate] タイムアウト発生 (${API_TIMEOUT_MS / 1000}秒): model=${selectedModel}`);
+                    throw err; // タイムアウト時は再試行せず即座に抜ける
+                }
+
                 const isUnavailable = err?.status === 503 ||
                     err?.message?.includes("503") ||
                     err?.message?.includes("high demand") ||
                     err?.message?.includes("UNAVAILABLE");
 
                 if (isUnavailable && attempt < maxRetries) {
-                    console.warn(`モデル高負荷のため再試行します（1秒待機）`);
+                    console.warn(`[generate] モデル高負荷のため再試行します（1秒待機）`);
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     continue;
                 }
@@ -237,6 +290,9 @@ export default async function handler(request, response) {
             text = result.text;
         }
 
+        const elapsed = Date.now() - startTime;
+        console.log(`[generate] 生成成功 (所要時間: ${elapsed}ms)`);
+
         if (isChoiceOnly) {
             try {
                 const parsed = JSON.parse(text);
@@ -253,8 +309,14 @@ export default async function handler(request, response) {
             response.status(200).json({ idea: text });
         }
     } catch (error) {
-        console.error('API呼び出しでエラー:', error);
-        console.error('エラー詳細:', error.message);
+        const elapsed = Date.now() - startTime;
+        console.error(`[generate] エラー発生 (所要時間: ${elapsed}ms):`, error.message);
+
+        if (error.name === "TimeoutError") {
+            return response.status(504).json({
+                error: "AIモデルの応答が20秒以内に完了しませんでした（タイムアウト）。混雑している可能性があるため、再度試すか別のモデルをお選びください。"
+            });
+        }
 
         const isUnavailable = error?.status === 503 ||
             error?.message?.includes("503") ||
