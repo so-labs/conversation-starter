@@ -62,6 +62,90 @@ if (customWordMode) {
     });
 }
 
+// カスタムセレクト要素
+const customSelectWrapper = document.getElementById('customSelectWrapper');
+const customSelectTrigger = document.getElementById('customSelectTrigger');
+const customSelectValue = document.getElementById('customSelectValue');
+const customSelectDropdown = document.getElementById('customSelectDropdown');
+
+function openCustomSelect() {
+    if (!customSelectWrapper) return;
+
+    // 画面下端との距離をチェックし、狭ければ上向きに開く
+    const rect = customSelectTrigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow < 250 && rect.top > spaceBelow) {
+        customSelectWrapper.classList.add('open-upward');
+    } else {
+        customSelectWrapper.classList.remove('open-upward');
+    }
+
+    customSelectWrapper.classList.add('is-open');
+    customSelectTrigger.setAttribute('aria-expanded', 'true');
+
+    // 選択中アイテムを視認できる位置へスクロール
+    const selectedOption = customSelectDropdown.querySelector('.custom-select-option.is-selected');
+    if (selectedOption) {
+        selectedOption.scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function closeCustomSelect() {
+    if (!customSelectWrapper) return;
+    customSelectWrapper.classList.remove('is-open');
+    customSelectTrigger.setAttribute('aria-expanded', 'false');
+}
+
+function toggleCustomSelect() {
+    if (customSelectWrapper.classList.contains('is-open')) {
+        closeCustomSelect();
+    } else {
+        openCustomSelect();
+    }
+}
+
+function selectCustomOption(val, text) {
+    modelSelect.value = val;
+    modelSelect.dispatchEvent(new Event('change'));
+    if (customSelectValue) {
+        customSelectValue.textContent = text;
+    }
+    const options = customSelectDropdown.querySelectorAll('.custom-select-option');
+    options.forEach(opt => {
+        const isSelected = opt.getAttribute('data-value') === val;
+        opt.classList.toggle('is-selected', isSelected);
+        opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+    closeCustomSelect();
+}
+
+if (customSelectTrigger) {
+    customSelectTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCustomSelect();
+    });
+
+    customSelectTrigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            openCustomSelect();
+        }
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && customSelectWrapper && customSelectWrapper.classList.contains('is-open')) {
+        closeCustomSelect();
+        customSelectTrigger.focus();
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (customSelectWrapper && !customSelectWrapper.contains(e.target)) {
+        closeCustomSelect();
+    }
+});
+
 // モデル一覧の読み込みとセレクトボックス生成
 async function loadModels() {
     try {
@@ -72,32 +156,93 @@ async function loadModels() {
         const groups = await response.json();
 
         modelSelect.innerHTML = '';
+        if (customSelectDropdown) customSelectDropdown.innerHTML = '';
+
         let hasSelected = false;
+        let selectedName = '';
 
         groups.forEach((group) => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = group.group;
 
+            // カスタムドロップダウン用グループ
+            const customGroup = document.createElement('div');
+            customGroup.className = 'custom-select-group';
+            const groupTitle = document.createElement('div');
+            groupTitle.className = 'custom-select-group-title';
+            groupTitle.textContent = group.group;
+            customGroup.appendChild(groupTitle);
+
             group.models.forEach((model) => {
+                // ネイティブoption（内部連携・フォールバック用）
                 const option = document.createElement('option');
                 option.value = model.id;
                 option.textContent = model.name;
-                if (model.default && !hasSelected) {
+
+                const isDefault = (model.default && !hasSelected);
+                if (isDefault) {
                     option.selected = true;
                     hasSelected = true;
+                    selectedName = model.name;
                 }
                 optgroup.appendChild(option);
+
+                // カスタムoption
+                const customOption = document.createElement('div');
+                customOption.className = `custom-select-option${isDefault ? ' is-selected' : ''}`;
+                customOption.setAttribute('role', 'option');
+                customOption.setAttribute('data-value', model.id);
+                customOption.setAttribute('aria-selected', isDefault ? 'true' : 'false');
+                customOption.setAttribute('tabindex', '0');
+                customOption.innerHTML = `
+                    <span>${model.name}</span>
+                    <svg class="custom-select-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                `;
+
+                customOption.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectCustomOption(model.id, model.name);
+                    customSelectTrigger.focus();
+                });
+
+                customOption.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        selectCustomOption(model.id, model.name);
+                        customSelectTrigger.focus();
+                    }
+                });
+
+                customGroup.appendChild(customOption);
             });
 
             modelSelect.appendChild(optgroup);
+            if (customSelectDropdown) customSelectDropdown.appendChild(customGroup);
         });
 
         if (!hasSelected && modelSelect.options.length > 0) {
             modelSelect.options[0].selected = true;
+            selectedName = modelSelect.options[0].textContent;
+            const firstCustom = customSelectDropdown.querySelector('.custom-select-option');
+            if (firstCustom) {
+                firstCustom.classList.add('is-selected');
+                firstCustom.setAttribute('aria-selected', 'true');
+            }
+        }
+
+        if (customSelectValue && selectedName) {
+            customSelectValue.textContent = selectedName;
         }
     } catch (error) {
         console.error('モデル一覧の取得に失敗しました:', error);
         modelSelect.innerHTML = '<option value="">モデルの取得に失敗しました</option>';
+        if (customSelectValue) customSelectValue.textContent = 'モデルの取得に失敗しました';
+        if (customSelectDropdown) {
+            customSelectDropdown.innerHTML = '<div style="padding: 10px; color: var(--text-color); font-size: 0.9em; text-align: center;">モデルの取得に失敗しました</div>';
+        }
     }
 }
 
@@ -192,5 +337,44 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch((error) => {
             console.error('Service Worker registration failed:', error);
         });
+    });
+}
+
+// 設定パネルの開閉
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+const settingsClose = document.getElementById('settingsClose');
+
+function openPanel() {
+    settingsPanel.classList.add('is-open');
+    settingsToggle.classList.add('is-open');
+    settingsPanel.setAttribute('aria-hidden', 'false');
+}
+
+function closePanel() {
+    closeCustomSelect();
+    settingsPanel.classList.remove('is-open');
+    settingsToggle.classList.remove('is-open');
+    settingsPanel.setAttribute('aria-hidden', 'true');
+}
+
+if (settingsToggle && settingsPanel) {
+    settingsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPanel.classList.contains('is-open') ? closePanel() : openPanel();
+    });
+
+    if (settingsClose) {
+        settingsClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePanel();
+        });
+    }
+
+    // パネル外クリックで閉じる
+    document.addEventListener('click', (e) => {
+        if (!settingsPanel.contains(e.target) && e.target !== settingsToggle) {
+            closePanel();
+        }
     });
 }

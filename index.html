@@ -40,22 +40,8 @@
         <div class="container">
             <h1>お題生成</h1>
             <button id="generateButton">生成！</button>
-            <div class="mode-select-container">
-                <label><input type="checkbox" id="choiceOnly"> 選択肢のみ</label>
-            </div>
-            <div class="custom-word-container">
-                <label><input type="checkbox" id="customWordMode"> ワード指定</label>
-                <input type="text" id="customWordInput" placeholder="単語・最大10文字" maxlength="10" disabled>
-            </div>
             <p id="errorDisplay" class="error-message"></p>
             <p id="ideaDisplay"></p>
-            <div class="model-select-container">
-                <label for="modelSelect">モデルを選択:</label>
-                <br>
-                <select id="modelSelect">
-                    <option value="" disabled selected>モデル読み込み中...</option>
-                </select>
-            </div>
         </div>
 
         <!-- テーマ切り替え -->
@@ -100,6 +86,62 @@
                         ダーク
                     </span>
                 </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定フローティングボタン -->
+    <button id="settingsToggle" class="settings-fab" aria-label="設定を開く">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+        </svg>
+    </button>
+
+    <!-- 設定パネル -->
+    <div id="settingsPanel" class="settings-panel" aria-hidden="true">
+        <div class="settings-panel-header">
+            <span>設定</span>
+            <button id="settingsClose" class="settings-close-btn" aria-label="設定を閉じる">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div class="settings-panel-body">
+            <div class="mode-select-container">
+                <label><input type="checkbox" id="choiceOnly"> 選択肢のみ</label>
+            </div>
+            <div class="custom-word-container">
+                <label><input type="checkbox" id="customWordMode"> ワード指定</label>
+                <input type="text" id="customWordInput" placeholder="単語・最大10文字" maxlength="10" disabled>
+            </div>
+            <div class="model-select-container">
+                <label id="modelSelectLabel" for="customSelectTrigger">モデルを選択:</label>
+                <div class="custom-select-wrapper" id="customSelectWrapper">
+                    <select id="modelSelect" class="visually-hidden" tabindex="-1" aria-hidden="true">
+                        <option value="" disabled selected>モデル読み込み中...</option>
+                    </select>
+                    <button type="button" id="customSelectTrigger" class="custom-select-trigger" aria-haspopup="listbox"
+                        aria-expanded="false" aria-labelledby="modelSelectLabel customSelectValue">
+                        <span id="customSelectValue" class="custom-select-value">モデル読み込み中...</span>
+                        <svg class="custom-select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div id="customSelectDropdown" class="custom-select-dropdown" role="listbox"
+                        aria-labelledby="modelSelectLabel" tabindex="-1">
+                        <!-- JSで動的にオプションを生成 -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
