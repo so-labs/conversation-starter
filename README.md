@@ -1,5 +1,10 @@
 # お題生成器 (Conversation Starter)
 
+[![Demo](https://img.shields.io/badge/🚀%20Demo-Live-black?style=flat-square&logo=vercel)](https://conversation-starter-ten.vercel.app)
+[![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://conversation-starter-ten.vercel.app)
+[![Gemini API](https://img.shields.io/badge/Gemini%20API-Powered-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
+
 Gemini APIを活用した、会話のきっかけや雑談・アイスブレイクに使えるお題を素早く生成するWebアプリケーションです。
 
 ---
