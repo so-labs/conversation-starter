@@ -4,8 +4,8 @@
   "description": "AIにお題を生成してもらうためのシンプルなWebアプリです。",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#f59e0b",
+  "background_color": "#b45309",
+  "theme_color": "#b45309",
   "icons": [
     {
       "src": "icons/icon.svg",

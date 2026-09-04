@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="AIにお題を生成してもらうためのシンプルなWebアプリです。">
-    <meta name="theme-color" content="#f59e0b">
+    <meta name="theme-color" content="#b45309" id="theme-color-meta">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="お題生成器">
     <title>お題生成器</title>
@@ -17,15 +17,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
-    <!-- テーマ適用時のちらつき（FOUC）防止 -->
+    <!-- テーマ適用時のちらつき（FOUC）防止およびステータスバー色制御 -->
     <script>
-        (function() {
+        (function () {
             try {
                 var savedTheme = localStorage.getItem('theme') || 'system';
+                var isDark = savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                var metaThemeColor = document.getElementById('theme-color-meta');
                 if (savedTheme !== 'system') {
                     document.documentElement.setAttribute('data-theme', savedTheme);
                 }
-            } catch (e) {}
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute('content', isDark ? '#2C3E50' : '#F0F2F5');
+                }
+            } catch (e) { }
         })();
     </script>
 </head>
@@ -34,24 +39,24 @@
     <div class="main-wrapper">
         <div class="container">
             <h1>お題生成</h1>
-        <button id="generateButton">生成！</button>
-        <div class="mode-select-container">
-            <label><input type="checkbox" id="choiceOnly"> 選択肢のみ</label>
+            <button id="generateButton">生成！</button>
+            <div class="mode-select-container">
+                <label><input type="checkbox" id="choiceOnly"> 選択肢のみ</label>
+            </div>
+            <div class="custom-word-container">
+                <label><input type="checkbox" id="customWordMode"> ワード指定</label>
+                <input type="text" id="customWordInput" placeholder="単語・最大10文字" maxlength="10" disabled>
+            </div>
+            <p id="errorDisplay" class="error-message"></p>
+            <p id="ideaDisplay"></p>
+            <div class="model-select-container">
+                <label for="modelSelect">モデルを選択:</label>
+                <br>
+                <select id="modelSelect">
+                    <option value="" disabled selected>モデル読み込み中...</option>
+                </select>
+            </div>
         </div>
-        <div class="custom-word-container">
-            <label><input type="checkbox" id="customWordMode"> ワード指定</label>
-            <input type="text" id="customWordInput" placeholder="単語・最大10文字" maxlength="10" disabled>
-        </div>
-        <p id="errorDisplay" class="error-message"></p>
-        <p id="ideaDisplay"></p>
-        <div class="model-select-container">
-            <label for="modelSelect">モデルを選択:</label>
-            <br>
-            <select id="modelSelect">
-                <option value="" disabled selected>モデル読み込み中...</option>
-            </select>
-        </div>
-    </div>
 
         <!-- テーマ切り替え -->
         <div class="theme-toggle-container">
@@ -59,21 +64,39 @@
                 <label class="theme-option">
                     <input type="radio" name="theme" value="light">
                     <span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
                         ライト
                     </span>
                 </label>
                 <label class="theme-option">
                     <input type="radio" name="theme" value="system" checked>
                     <span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20Z" fill="currentColor"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 2a10 10 0 0 1 0 20Z" fill="currentColor"></path>
+                        </svg>
                         システム
                     </span>
                 </label>
                 <label class="theme-option">
                     <input type="radio" name="theme" value="dark">
                     <span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
                         ダーク
                     </span>
                 </label>

@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg-color: #F0F2F5;
     --container-bg: #FFFFFF;
     --text-color: #34495E;
@@ -8,6 +8,8 @@
     --input-text: #2C3E50;
     --input-border: #BDC3C7;
     --toggle-active-bg: #E0E4E8;
+    --choice-bg: #E2E8F0;
+    --choice-text: #2C3E50;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +23,8 @@
         --input-text: #2C3E50;
         --input-border: #34495E;
         --toggle-active-bg: #2C3E50;
+        --choice-bg: #ECF0F1;
+        --choice-text: #2C3E50;
     }
 }
 
@@ -34,6 +38,8 @@
     --input-text: #2C3E50;
     --input-border: #BDC3C7;
     --toggle-active-bg: #E0E4E8;
+    --choice-bg: #E2E8F0;
+    --choice-text: #2C3E50;
 }
 
 [data-theme="dark"] {
@@ -46,6 +52,8 @@
     --input-text: #2C3E50;
     --input-border: #34495E;
     --toggle-active-bg: #2C3E50;
+    --choice-bg: #ECF0F1;
+    --choice-text: #2C3E50;
 }
 
 body {
@@ -287,12 +295,12 @@ h1 {
     padding: 10px 16px;
     border: none;
     border-radius: 12px;
-    background: var(--input-bg);
-    color: var(--input-text);
+    background: var(--choice-bg);
+    color: var(--choice-text);
     font-family: 'M PLUS Rounded 1c', sans-serif;
     font-size: 0.5em;
     cursor: pointer;
-    transition: transform 0.2s, background-color 0.2s;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s;
 }
 
 .choice-btn:hover {
@@ -335,7 +343,7 @@ h1 {
     transition: background-color 0.2s, color 0.2s;
 }
 
-.theme-option input:checked + span {
+.theme-option input:checked+span {
     background-color: var(--toggle-active-bg);
     color: var(--text-color-strong);
 }
@@ -395,6 +403,11 @@ h1 {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

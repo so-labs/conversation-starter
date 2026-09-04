@@ -1,13 +1,24 @@
-﻿// テーマ設定
+// テーマ設定
 const themeRadios = document.querySelectorAll('input[name="theme"]');
 const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+const metaThemeColor = document.getElementById('theme-color-meta');
+
+function updateThemeColor(isDark) {
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', isDark ? '#2C3E50' : '#F0F2F5');
+    }
+}
 
 function applyTheme(theme) {
+    let isDark = false;
     if (theme === 'system') {
         document.documentElement.removeAttribute('data-theme');
+        isDark = prefersDarkScheme.matches;
     } else {
         document.documentElement.setAttribute('data-theme', theme);
+        isDark = theme === 'dark';
     }
+    updateThemeColor(isDark);
 }
 
 const savedTheme = localStorage.getItem('theme') || 'system';
