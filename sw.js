@@ -1,4 +1,4 @@
-/**
+﻿/**
  * キャッシュバージョンの命名規則:
  * conversation-starter-YYYY.MM-rN
  *
@@ -6,7 +6,7 @@
  * MM   = 月（01〜12）
  * rN   = その月のリリース回数
  */
-const CACHE_NAME = 'conversation-starter-2026.09-r3';
+const CACHE_NAME = 'conversation-starter-2026.09-r4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-color: #F0F2F5;
     --container-bg: #FFFFFF;
     --text-color: #34495E;
@@ -362,7 +362,10 @@ h1 {
     font-size: 1em;
     cursor: pointer;
     user-select: none;
-    display: inline-flex;
+    display: flex;
+    width: 100%;
+    padding: 6px 0;
+    box-sizing: border-box;
     align-items: center;
     gap: 8px;
 }
@@ -410,7 +413,10 @@ h1 {
     font-size: 1em;
     cursor: pointer;
     user-select: none;
-    display: inline-flex;
+    display: flex;
+    width: 100%;
+    padding: 6px 0;
+    box-sizing: border-box;
     align-items: center;
     gap: 8px;
 }
