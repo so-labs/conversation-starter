@@ -7,6 +7,7 @@ package-lock.json
 *_local_*
 *.txt
 *.diff
+*.local.*
 
 # Vercel artifacts
 .vercel
