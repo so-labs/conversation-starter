@@ -378,3 +378,79 @@ if (settingsToggle && settingsPanel) {
         }
     });
 }
+
+// スワイプで設定パネルの開閉
+(function setupSwipeForSettings() {
+    if (!settingsPanel || !settingsToggle) return;
+
+    const THRESHOLD_X = 60;            // 横方向の最小移動量(px)
+    const MIN_VELOCITY_X = 0.25;       // 横方向の最小速度(px/ms)
+    const Y_RATIO_MAX = 0.6;           // |Δy| / |Δx| の上限。これを超えると縦成分優勢とみなして不発
+    const MAX_DURATION = 1000;         // 長すぎるスワイプは意図的操作ではないとみなして不発
+
+    let tracking = false;
+    let startX = 0;
+    let startY = 0;
+    let startT = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) {
+            tracking = false;
+            return;
+        }
+        const touch = e.touches[0];
+        tracking = true;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startT = e.timeStamp;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!tracking) return;
+        // 縦スクロールを妨げないよう、ここでは何もしない(判定はtouchendで行う)
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        if (!tracking) return;
+        tracking = false;
+
+        const changed = e.changedTouches[0];
+        if (!changed) return;
+
+        const dx = changed.clientX - startX; // 左スワイプは負、右スワイプは正
+        const dy = changed.clientY - startY;
+        const dt = e.timeStamp - startT;
+
+        if (dt > MAX_DURATION) return;
+
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        // 横移動量が閾値未満なら不発
+        if (absDx < THRESHOLD_X) return;
+
+        // 縦成分が横成分に対して大きすぎる場合は縦スクロールとみなして不発
+        if (absDx > 0 && absDy / absDx > Y_RATIO_MAX) return;
+
+        const velocity = absDx / Math.max(dt, 1);
+        if (velocity < MIN_VELOCITY_X) return;
+
+        const isOpen = settingsPanel.classList.contains('is-open');
+
+        // パネルが閉じている → 左スワイプで開く
+        if (!isOpen && dx < 0) {
+            openPanel();
+            return;
+        }
+
+        // パネルが開いている → 右スワイプで閉じる
+        if (isOpen && dx > 0) {
+            closePanel();
+            return;
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+        tracking = false;
+    }, { passive: true });
+})();

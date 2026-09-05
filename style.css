@@ -491,12 +491,14 @@ h1 {
     color: white;
 }
 
-/* 設定FABボタン（右端から半分はみ出る丸型） */
+/* 設定FABボタン（右端から半分はみ出る丸型）
+   - パネル閉じ時: 右端に半分隠れた位置で待機
+   - パネル開き時: 左へ出て黄色で待機(視覚的フィードバック)
+   - 閉じた瞬間: 上記の位置へアニメーションで戻る */
 .settings-fab {
     position: fixed;
     right: 0;
     top: 50%;
-    /* translateX(幅 - 見せたいpx) で右にスライドして隠す */
     transform: translateY(-50%) translateX(calc(100% - 36px));
     width: 56px;
     height: 56px;
@@ -510,20 +512,15 @@ h1 {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    transition: background-color 0.2s, transform 0.2s ease, box-shadow 0.2s, color 0.2s;
-    z-index: 100;
+    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+    z-index: 99;
 }
 
-.settings-fab:hover {
+.settings-fab.is-open {
     transform: translateY(-50%) translateX(0);
     background-color: var(--primary-color);
     color: white;
     box-shadow: -6px 4px 20px rgba(243, 156, 18, 0.4);
-}
-
-.settings-fab.is-open {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .settings-fab svg {
@@ -546,7 +543,7 @@ h1 {
     box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
     padding: 0;
     min-width: 230px;
-    z-index: 99;
+    z-index: 100;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease, transform 0.25s ease;
